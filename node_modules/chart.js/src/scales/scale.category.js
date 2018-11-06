@@ -1,16 +1,13 @@
 'use strict';
 
-var Scale = require('../core/core.scale');
-var scaleService = require('../core/core.scaleService');
-
-module.exports = function() {
+module.exports = function(Chart) {
 
 	// Default config for a category scale
 	var defaultConfig = {
 		position: 'bottom'
 	};
 
-	var DatasetScale = Scale.extend({
+	var DatasetScale = Chart.Scale.extend({
 		/**
 		* Internal function to get the correct labels. If data.xLabels or data.yLabels are defined, use those
 		* else fall back to data.labels
@@ -131,5 +128,6 @@ module.exports = function() {
 		}
 	});
 
-	scaleService.registerScaleType('category', DatasetScale, defaultConfig);
+	Chart.scaleService.registerScaleType('category', DatasetScale, defaultConfig);
+
 };

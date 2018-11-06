@@ -75,7 +75,6 @@ Context.prototype._initMethods = function() {
 	var me = this;
 	var methods = {
 		arc: function() {},
-		arcTo: function() {},
 		beginPath: function() {},
 		bezierCurveTo: function() {},
 		clearRect: function() {},

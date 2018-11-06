@@ -1,6 +1,4 @@
 describe('Chart.controllers.bubble', function() {
-	describe('auto', jasmine.specsFromFixtures('controller.bubble'));
-
 	it('should be constructed', function() {
 		var chart = window.acquireChart({
 			type: 'bubble',

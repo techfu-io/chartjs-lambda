@@ -27,30 +27,25 @@ var exports = module.exports = {
 	 */
 	roundedRect: function(ctx, x, y, width, height, radius) {
 		if (radius) {
-			// NOTE(SB) `epsilon` helps to prevent minor artifacts appearing
-			// on Chrome when `r` is exactly half the height or the width.
-			var epsilon = 0.0000001;
-			var r = Math.min(radius, (height / 2) - epsilon, (width / 2) - epsilon);
+			var rx = Math.min(radius, width / 2);
+			var ry = Math.min(radius, height / 2);
 
-			ctx.moveTo(x + r, y);
-			ctx.lineTo(x + width - r, y);
-			ctx.arcTo(x + width, y, x + width, y + r, r);
-			ctx.lineTo(x + width, y + height - r);
-			ctx.arcTo(x + width, y + height, x + width - r, y + height, r);
-			ctx.lineTo(x + r, y + height);
-			ctx.arcTo(x, y + height, x, y + height - r, r);
-			ctx.lineTo(x, y + r);
-			ctx.arcTo(x, y, x + r, y, r);
-			ctx.closePath();
-			ctx.moveTo(x, y);
+			ctx.moveTo(x + rx, y);
+			ctx.lineTo(x + width - rx, y);
+			ctx.quadraticCurveTo(x + width, y, x + width, y + ry);
+			ctx.lineTo(x + width, y + height - ry);
+			ctx.quadraticCurveTo(x + width, y + height, x + width - rx, y + height);
+			ctx.lineTo(x + rx, y + height);
+			ctx.quadraticCurveTo(x, y + height, x, y + height - ry);
+			ctx.lineTo(x, y + ry);
+			ctx.quadraticCurveTo(x, y, x + rx, y);
 		} else {
 			ctx.rect(x, y, width, height);
 		}
 	},
 
-	drawPoint: function(ctx, style, radius, x, y, rotation) {
+	drawPoint: function(ctx, style, radius, x, y) {
 		var type, edgeLength, xOffset, yOffset, height, size;
-		rotation = rotation || 0;
 
 		if (style && typeof style === 'object') {
 			type = style.toString();
@@ -64,88 +59,97 @@ var exports = module.exports = {
 			return;
 		}
 
-		ctx.save();
-		ctx.translate(x, y);
-		ctx.rotate(rotation * Math.PI / 180);
-		ctx.beginPath();
-
 		switch (style) {
 		// Default includes circle
 		default:
-			ctx.arc(0, 0, radius, 0, Math.PI * 2);
+			ctx.beginPath();
+			ctx.arc(x, y, radius, 0, Math.PI * 2);
 			ctx.closePath();
+			ctx.fill();
 			break;
 		case 'triangle':
+			ctx.beginPath();
 			edgeLength = 3 * radius / Math.sqrt(3);
 			height = edgeLength * Math.sqrt(3) / 2;
-			ctx.moveTo(-edgeLength / 2, height / 3);
-			ctx.lineTo(edgeLength / 2, height / 3);
-			ctx.lineTo(0, -2 * height / 3);
+			ctx.moveTo(x - edgeLength / 2, y + height / 3);
+			ctx.lineTo(x + edgeLength / 2, y + height / 3);
+			ctx.lineTo(x, y - 2 * height / 3);
 			ctx.closePath();
+			ctx.fill();
 			break;
 		case 'rect':
 			size = 1 / Math.SQRT2 * radius;
-			ctx.rect(-size, -size, 2 * size, 2 * size);
+			ctx.beginPath();
+			ctx.fillRect(x - size, y - size, 2 * size, 2 * size);
+			ctx.strokeRect(x - size, y - size, 2 * size, 2 * size);
 			break;
 		case 'rectRounded':
 			var offset = radius / Math.SQRT2;
-			var leftX = -offset;
-			var topY = -offset;
+			var leftX = x - offset;
+			var topY = y - offset;
 			var sideSize = Math.SQRT2 * radius;
-
-			// NOTE(SB) the rounded rect implementation changed to use `arcTo`
-			// instead of `quadraticCurveTo` since it generates better results
-			// when rect is almost a circle. 0.425 (instead of 0.5) produces
-			// results visually closer to the previous impl.
-			this.roundedRect(ctx, leftX, topY, sideSize, sideSize, radius * 0.425);
+			ctx.beginPath();
+			this.roundedRect(ctx, leftX, topY, sideSize, sideSize, radius / 2);
+			ctx.closePath();
+			ctx.fill();
 			break;
 		case 'rectRot':
 			size = 1 / Math.SQRT2 * radius;
-			ctx.moveTo(-size, 0);
-			ctx.lineTo(0, size);
-			ctx.lineTo(size, 0);
-			ctx.lineTo(0, -size);
+			ctx.beginPath();
+			ctx.moveTo(x - size, y);
+			ctx.lineTo(x, y + size);
+			ctx.lineTo(x + size, y);
+			ctx.lineTo(x, y - size);
 			ctx.closePath();
+			ctx.fill();
 			break;
 		case 'cross':
-			ctx.moveTo(0, radius);
-			ctx.lineTo(0, -radius);
-			ctx.moveTo(-radius, 0);
-			ctx.lineTo(radius, 0);
+			ctx.beginPath();
+			ctx.moveTo(x, y + radius);
+			ctx.lineTo(x, y - radius);
+			ctx.moveTo(x - radius, y);
+			ctx.lineTo(x + radius, y);
+			ctx.closePath();
 			break;
 		case 'crossRot':
+			ctx.beginPath();
 			xOffset = Math.cos(Math.PI / 4) * radius;
 			yOffset = Math.sin(Math.PI / 4) * radius;
-			ctx.moveTo(-xOffset, -yOffset);
-			ctx.lineTo(xOffset, yOffset);
-			ctx.moveTo(-xOffset, yOffset);
-			ctx.lineTo(xOffset, -yOffset);
+			ctx.moveTo(x - xOffset, y - yOffset);
+			ctx.lineTo(x + xOffset, y + yOffset);
+			ctx.moveTo(x - xOffset, y + yOffset);
+			ctx.lineTo(x + xOffset, y - yOffset);
+			ctx.closePath();
 			break;
 		case 'star':
-			ctx.moveTo(0, radius);
-			ctx.lineTo(0, -radius);
-			ctx.moveTo(-radius, 0);
-			ctx.lineTo(radius, 0);
+			ctx.beginPath();
+			ctx.moveTo(x, y + radius);
+			ctx.lineTo(x, y - radius);
+			ctx.moveTo(x - radius, y);
+			ctx.lineTo(x + radius, y);
 			xOffset = Math.cos(Math.PI / 4) * radius;
 			yOffset = Math.sin(Math.PI / 4) * radius;
-			ctx.moveTo(-xOffset, -yOffset);
-			ctx.lineTo(xOffset, yOffset);
-			ctx.moveTo(-xOffset, yOffset);
-			ctx.lineTo(xOffset, -yOffset);
+			ctx.moveTo(x - xOffset, y - yOffset);
+			ctx.lineTo(x + xOffset, y + yOffset);
+			ctx.moveTo(x - xOffset, y + yOffset);
+			ctx.lineTo(x + xOffset, y - yOffset);
+			ctx.closePath();
 			break;
 		case 'line':
-			ctx.moveTo(-radius, 0);
-			ctx.lineTo(radius, 0);
+			ctx.beginPath();
+			ctx.moveTo(x - radius, y);
+			ctx.lineTo(x + radius, y);
+			ctx.closePath();
 			break;
 		case 'dash':
-			ctx.moveTo(0, 0);
-			ctx.lineTo(radius, 0);
+			ctx.beginPath();
+			ctx.moveTo(x, y);
+			ctx.lineTo(x + radius, y);
+			ctx.closePath();
 			break;
 		}
 
-		ctx.fill();
 		ctx.stroke();
-		ctx.restore();
 	},
 
 	clipArea: function(ctx, area) {
@@ -206,4 +210,5 @@ helpers.clear = exports.clear;
 helpers.drawRoundedRectangle = function(ctx) {
 	ctx.beginPath();
 	exports.roundedRect.apply(exports, arguments);
+	ctx.closePath();
 };
