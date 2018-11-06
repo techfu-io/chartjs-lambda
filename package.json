@@ -1,0 +1,11 @@
+{
+  "name": "chartjs-lambda",
+  "version": "0.0.1",
+  "description": "Sample project showing how to run ChartJS inside of AWS lambda",
+  "dependencies": {
+    "debug": "^4.1.0",
+    "canvas-prebuilt": "^1.6.5-prerelease.1",
+    "chart.js": "^2.7.2",
+    "chartjs-node-canvas": "^1.1.6"
+  }
+}

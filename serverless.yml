@@ -1,0 +1,17 @@
+service: chartjs-lambda
+
+# You can pin your service to only deploy with a specific Serverless version
+# Check out our docs for more details
+# frameworkVersion: "=X.X.X"
+
+provider:
+  name: aws
+  runtime: nodejs8.10
+  versionFunctions: false
+  timeout: 20 # seconds, we may handle multiple sprints
+  environment:
+    REGION: ${self:provider.region}
+
+functions:
+  render_chart:
+    handler: chartjs-lambda.renderChart
